@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地道英語 100 句 - 互動練習版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .word-span:hover { background-color: #eef2ff; text-decoration: underline; color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-12">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="book-open" class="w-8 h-8"></i>
+                <h1 class="text-2xl font-bold">地道英語 100 句</h1>
+            </div>
+            <div class="relative w-full md:w-64">
+                <input type="text" id="searchInput" placeholder="搜尋句子或中文..." 
+                    class="w-full pl-10 pr-4 py-2 rounded-full text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-inner">
+                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+        <!-- Status Bar -->
+        <div class="flex justify-between items-center mb-4">
+            <div id="pageInfo" class="text-slate-500 font-medium">載入中...</div>
+            <button id="stopBtn" class="hidden flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors shadow-md animate-pulse">
+                <i data-lucide="stop-circle" class="w-4 h-4"></i> 停止播放
+            </button>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="flex items-center gap-2 text-sm text-slate-500 mb-6 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+            <i data-lucide="mic" class="w-4 h-4 text-yellow-600"></i>
+            <span>已啟用 <strong>自然語音</strong>。點擊 <strong>喇叭</strong> 唸整句，點擊 <strong>單字</strong> 個別發音。</span>
+        </div>
+
+        <!-- Content Area -->
+        <div id="phrasesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[500px] content-start">
+            <!-- 句子會由 JS 生成 -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="flex justify-center items-center gap-6 mt-10 py-4 border-t border-slate-200">
+            <button id="prevBtn" class="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-full shadow-md hover:bg-indigo-50 transition-all active:scale-95 border border-slate-100 disabled:opacity-30">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i> 上一頁
+            </button>
+            <button id="nextBtn" class="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-full shadow-md hover:bg-indigo-50 transition-all active:scale-95 border border-slate-100 disabled:opacity-30">
+                下一頁 <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const phrasesData = [
+            { en: "Time to go", cn: "該走了" }, { en: "Have a seat", cn: "請坐" }, { en: "Take your time", cn: "慢慢來" }, { en: "Nice try", cn: "嘗試得不錯" }, { en: "Help yourself", cn: "請自便" }, { en: "Got a minute?", cn: "有空嗎？" }, { en: "Come over", cn: "過來一下" }, { en: "Sounds good", cn: "聽起來不錯" }, { en: "Give me a call", cn: "給我打個電話" }, { en: "I can't get through", cn: "我打不通（電話）" },
+            { en: "After you", cn: "您先請" }, { en: "You're kidding", cn: "你在開玩笑吧" }, { en: "It's on me", cn: "我請客" }, { en: "I appreciate it", cn: "我很感激" }, { en: "Not at all", cn: "一點也不；沒關係" }, { en: "It doesn't fit", cn: "不合適；不合身" }, { en: "It's too tight", cn: "太緊了" }, { en: "You doing okay?", cn: "你還好嗎？" }, { en: "Feel better", cn: "感覺好點了嗎" }, { en: "I'll take this", cn: "我要買這個" },
+            { en: "Same here", cn: "我也一樣" }, { en: "Who's calling?", cn: "請問是哪位？" }, { en: "Hold your tongue", cn: "閉嘴；別亂說" }, { en: "Think it over", cn: "仔細考慮一下" }, { en: "It takes time", cn: "這需要時間" }, { en: "Allow me", cn: "讓我來" }, { en: "Way to go", cn: "做得好" }, { en: "Move over", cn: "挪過去一點" }, { en: "Any day will do", cn: "哪天都可以" }, { en: "Say again", cn: "請再說一遍" },
+            { en: "Come to the point", cn: "有話直說" }, { en: "It's about time", cn: "正是時候；早該如此" }, { en: "I'm home", cn: "我到家了" }, { en: "It's chilly out", cn: "外面很冷" }, { en: "Since when?", cn: "從什麼時候開始？" }, { en: "Where to?", cn: "去哪裡？" }, { en: "Come along", cn: "跟上；一起來" }, { en: "Wait for me", cn: "等等我" }, { en: "Get down", cn: "蹲下；下來" }, { en: "Hold on tight", cn: "抓緊" },
+            { en: "Take it easy", cn: "放輕鬆" }, { en: "What's up", cn: "怎麼了？" }, { en: "Not much", cn: "沒什麼" }, { en: "Can't complain", cn: "還過得去；沒什麼好抱怨的" }, { en: "Why not", cn: "為什麼不呢？" }, { en: "Give me a break", cn: "饒了我吧；別開玩笑了" }, { en: "Listen up", cn: "聽好了" }, { en: "Absolutely not", cn: "絕對不行" }, { en: "Neither do I", cn: "我也不會" }, { en: "Sort of", cn: "算是吧；有一點" },
+            { en: "Good job", cn: "做得好" }, { en: "No kidding", cn: "不是開玩笑的" }, { en: "Who cares", cn: "誰在乎" }, { en: "Not really", cn: "不完全是" }, { en: "Time's up", cn: "時間到" }, { en: "Is that clear?", cn: "清楚了嗎？" }, { en: "Not exactly", cn: "不完全如此" }, { en: "That's right", cn: "沒錯" }, { en: "What else", cn: "還有什麼？" }, { en: "Just checking", cn: "只是確認一下" },
+            { en: "Ready to go", cn: "準備好出發了" }, { en: "Not yet", cn: "還沒" }, { en: "How come", cn: "怎麼會？" }, { en: "That's impossible", cn: "那不可能" }, { en: "Think twice", cn: "三思而後行" }, { en: "It's up to you", cn: "由你決定" }, { en: "No problem", cn: "沒問題" }, { en: "Here I am", cn: "我來了" }, { en: "That's true", cn: "那是真的" }, { en: "My mistake", cn: "我的錯" },
+            { en: "Guess what", cn: "你猜怎麼著" }, { en: "Try some", cn: "試一點" }, { en: "That's it", cn: "就這樣" }, { en: "Hold on", cn: "等一下" }, { en: "Take care", cn: "保重" }, { en: "Like what", cn: "像什麼？" }, { en: "You look tired", cn: "你看起來很累" }, { en: "Leave me alone", cn: "讓我一個人靜靜" }, { en: "Don't bug me", cn: "別煩我" }, { en: "Watch out", cn: "小心" },
+            { en: "Trust me", cn: "相信我" }, { en: "Got it", cn: "明白了" }, { en: "Anything new", cn: "有什麼新鮮事嗎？" }, { en: "Let me see", cn: "讓我看看" }, { en: "What for", cn: "為了什麼？" }, { en: "Not bad", cn: "不錯" }, { en: "I swear", cn: "我發誓" }, { en: "Touch wood", cn: "敲敲木頭（求好運）" }, { en: "I made it", cn: "我做到了" }, { en: "Calm down", cn: "冷靜點" },
+            { en: "Stop it", cn: "住手；別做了" }, { en: "Time will tell", cn: "時間會證明一切" }, { en: "Keep going", cn: "繼續" }, { en: "Have fun", cn: "玩得開心" }, { en: "We are all ears", cn: "我們洗耳恭聽" }, { en: "I'd rather not", cn: "我寧願不要" }, { en: "Stop being rude", cn: "別這麼沒禮貌" }, { en: "Could be", cn: "可能是吧" }, { en: "Come on in", cn: "進來吧" }, { en: "Let it be", cn: "順其自然" }
+        ];
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredData = [...phrasesData];
+        let synth = window.speechSynthesis;
+        let voices = [];
+
+        // 初始化語音庫
+        function initVoices() {
+            voices = synth.getVoices();
+        }
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = initVoices;
+        }
+
+        // 搜尋自然語音
+        function getBestVoice() {
+            const enVoices = voices.filter(v => v.lang.includes('en'));
+            return enVoices.find(v => v.name.includes('Natural')) || 
+                   enVoices.find(v => v.name.includes('Google')) || 
+                   enVoices.find(v => v.lang === 'en-US') || 
+                   enVoices[0];
+        }
+
+        function speak(text) {
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voice = getBestVoice();
+            if (voice) utterance.voice = voice;
+            utterance.rate = 0.9;
+            
+            utterance.onstart = () => document.getElementById('stopBtn').classList.remove('hidden');
+            utterance.onend = () => document.getElementById('stopBtn').classList.add('hidden');
+            
+            synth.speak(utterance);
+        }
+
+        function renderPhrases() {
+            const grid = document.getElementById('phrasesGrid');
+            grid.innerHTML = '';
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentItems = filteredData.slice(start, end);
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+            document.getElementById('pageInfo').innerHTML = `第 <span class="text-indigo-600 font-bold">${currentPage}</span> / ${totalPages || 1} 頁`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+
+            currentItems.forEach((item, index) => {
+                const globalIndex = start + index + 1;
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex flex-col hover:shadow-md transition-shadow";
+                
+                const wordsHtml = item.en.split(' ').map(w => {
+                    const clean = w.replace(/[^a-zA-Z']/g, "");
+                    return `<span class="word-span cursor-pointer rounded px-0.5 transition-colors mr-1" onclick="event.stopPropagation(); speak('${clean}')">${w}</span>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-3 mb-3">
+                        <div class="text-lg md:text-xl font-bold text-slate-800">${wordsHtml}</div>
+                        <button onclick="speak('${item.en.replace(/'/g, "\\'")}')" class="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center text-slate-600">
+                        <span class="font-medium">${item.cn}</span>
+                        <span class="text-xs text-slate-300 font-mono">#${globalIndex}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            filteredData = phrasesData.filter(p => p.en.toLowerCase().includes(term) || p.cn.includes(term));
+            currentPage = 1;
+            renderPhrases();
+        });
+
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentPage > 1) { currentPage--; renderPhrases(); window.scrollTo(0, 0); }
+        };
+
+        document.getElementById('nextBtn').onclick = () => {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (currentPage < totalPages) { currentPage++; renderPhrases(); window.scrollTo(0, 0); }
+        };
+
+        document.getElementById('stopBtn').onclick = () => synth.cancel();
+
+        // Initial Run
+        window.onload = () => {
+            initVoices();
+            renderPhrases();
+        };
+    </script>
+</body>
+</html>
