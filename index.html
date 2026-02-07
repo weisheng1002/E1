@@ -31,11 +31,9 @@
 
     <main class="max-w-4xl mx-auto px-4 mt-6">
         <!-- Status Bar -->
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-4 min-h-[40px]">
             <div id="pageInfo" class="text-slate-500 font-medium">載入中...</div>
-            <button id="stopBtn" class="hidden flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors shadow-md animate-pulse">
-                <i data-lucide="stop-circle" class="w-4 h-4"></i> 停止播放
-            </button>
+            <!-- 移除停止播放按鈕以避免畫面跳動 -->
         </div>
 
         <!-- Info Banner -->
@@ -103,10 +101,6 @@
             const voice = getBestVoice();
             if (voice) utterance.voice = voice;
             utterance.rate = 0.9;
-            
-            utterance.onstart = () => document.getElementById('stopBtn').classList.remove('hidden');
-            utterance.onend = () => document.getElementById('stopBtn').classList.add('hidden');
-            
             synth.speak(utterance);
         }
 
@@ -166,8 +160,6 @@
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
             if (currentPage < totalPages) { currentPage++; renderPhrases(); window.scrollTo(0, 0); }
         };
-
-        document.getElementById('stopBtn').onclick = () => synth.cancel();
 
         // Initial Run
         window.onload = () => {
