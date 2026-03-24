@@ -3,169 +3,661 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地道英語 100 句 - 互動練習版</title>
+    <title>114學年度身心障礙學生升學甄試-英文科互動題庫 (語音定點版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .word-span:hover { background-color: #eef2ff; text-decoration: underline; color: #4f46e5; }
+        /* 基礎樣式 */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #111827; transition: background-color 0.3s, color 0.3s; }
+        .clickable-word { transition: all 0.2s; border-bottom: 2px dashed transparent; }
+        .clickable-word:hover { background-color: #dbeafe; color: #1d4ed8; border-radius: 0.25rem; cursor: pointer; border-bottom: 2px dashed #1d4ed8; }
+        
+        /* 隱藏滾動條但保持可滾動 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 pb-12">
+<body>
+    <div id="root"></div>
 
-    <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-2">
-                <i data-lucide="book-open" class="w-8 h-8"></i>
-                <h1 class="text-2xl font-bold">地道英語 100 句</h1>
-            </div>
-            <div class="relative w-full md:w-64">
-                <input type="text" id="searchInput" placeholder="搜尋句子或中文..." 
-                    class="w-full pl-10 pr-4 py-2 rounded-full text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-inner">
-                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-            </div>
-        </div>
-    </header>
+    <script type="text/babel">
+        // --- 核心單字庫 ---
+        const vocabDictionary = {
+            "carmakers": "汽車製造商", "landlords": "房東", "magicians": "魔術師", "survivors": "生還者", "survivor": "生還者",
+            "avoided": "避免", "avoid": "避免", "ignored": "忽略", "ignore": "忽略", "misread": "看錯 / 誤讀", "observed": "觀察", "observe": "觀察",
+            "decreasing": "減少", "expand": "擴展", "maintaining": "維持 / 保養", "maintain": "維持", "neglecting": "忽略", "neglect": "忽略",
+            "accurate": "準確的", "instant": "立即的 / 瞬間的", "opposite": "相反的", "upright": "直立的",
+            "composer": "作曲家", "master": "大師", "novice": "新手", "visitor": "訪客",
+            "manual": "手動的", "liberal": "開明的", "deceiving": "欺騙的", "deceive": "欺騙", "challenging": "具挑戰性的", "challenge": "挑戰", "tricky": "棘手的",
+            "density": "密度", "glamour": "魅力", "spinach": "菠菜", "tobacco": "菸草", "lungs": "肺部",
+            "excitement": "興奮", "interpretation": "解釋", "misbehavior": "不良行為", "behavior": "行為", "shortage": "短缺",
+            "control": "控制", "defend": "防禦", "nominate": "提名", "visualize": "想像 / 使形象化", "visual": "視覺的",
+            "lengthy": "漫長的 / 冗長的", "length": "長度", "modern": "現代的", "optional": "可選擇的", "selfish": "自私的",
+            "appreciate": "欣賞 / 感謝", "consider": "考慮", "perceive": "察覺", "recover": "恢復",
+            "content": "內容 / 滿足", "damage": "損害 / 破壞", "harmony": "和諧", "pleasure": "愉悅", "earthquake": "地震",
+            "anticipated": "預期", "contributed": "貢獻", "contribute": "貢獻", "persuaded": "說服", "persuade": "說服", "relieved": "減輕", "relieve": "減輕",
+            "concern": "擔憂", "doubt": "懷疑", "faith": "信心 / 信任", "interest": "興趣",
+            "absent": "缺席的", "crammed": "塞滿的", "occupied": "被佔用的", "vacant": "空置的", "vacuum": "真空",
+            "excessively": "過度地", "infrequently": "不頻繁地", "moderately": "適度地", "respectfully": "恭敬地", "burnout": "過勞",
+            "analogies": "類比", "calculations": "計算", "incentives": "動機 / 誘因", "techniques": "技巧 / 技術", "photographers": "攝影師",
+            "accidentally": "意外地", "dishonestly": "不誠實地", "evidently": "明顯地", "realistically": "寫實地",
+            "gesture": "姿勢 / 手勢", "reminder": "提醒", "separation": "分離", "warning": "警告", "handshake": "握手", "bow": "鞠躬",
+            "answer": "回答", "move": "移動", "lead": "導致 / 通向", "prefer": "偏好",
+            "endings": "結局", "opportunities": "機會", "routines": "例行公事", "surprises": "驚喜 / 驚奇", "action": "動作片", "adventure": "冒險片",
+            "furious": "狂怒的", "happy": "快樂的", "lonely": "寂寞的", "tired": "疲累的", "relaxed": "放鬆的",
+            "engage": "參與 / 吸引", "improve": "改善 / 增進", "speak": "說話", "wonder": "納悶",
+            "comfortable": "舒適的", "familiar": "熟悉的", "hardworking": "勤奮的", "stressful": "有壓力的", "convenient": "方便的",
+            "convince": "說服", "escape": "逃離 / 逃避", "predict": "預測", "watch": "觀看",
+            "affordable": "負擔得起的", "economical": "經濟的", "friendly": "友善的", "eco-friendly": "環保的", "congestion": "壅塞", "costly": "昂貴的", "convenience": "便利性", "expense": "花費",
+            "transforming": "改變 / 轉變", "collaboration": "合作", "replicate": "複製", "piracy": "盜版", "unfortunately": "不幸地", "colleague": "同事", "accident": "意外", "tragically": "悲慘地", "lost": "失去", "lives": "生命", 
+            "missed": "錯過", "train": "火車", "because": "因為", "instead": "反而 / 替代", "regular": "規律的", "exercise": "運動", 
+            "essential": "必要的", "health": "健康", "especially": "尤其是", "spend": "花費", "sitting": "坐著", "desk": "書桌", 
+            "spider": "蜘蛛", "dropped": "掉落", "triggered": "觸發", "reaction": "反應", "cried": "哭 / 大叫", "jumped": "跳", 
+            "nearest": "最近的", "chair": "椅子", "studying": "學習", "famous": "著名的", "chefs": "廚師", "cuisine": "料理", 
+            "dealing": "處理", "academic": "學術的", "demands": "要求", "quite": "相當", "high": "高", "school": "學校", 
+            "students": "學生", "knowing": "知道", "risks": "風險", "young": "年輕的", "people": "人們", "still": "仍然", 
+            "experiment": "實驗 / 嘗試", "due": "由於", "peer": "同儕", "pressure": "壓力", "often": "經常", "trouble": "麻煩", "frequent": "頻繁的", "talking": "說話", "back": "回", "teachers": "老師", "failing": "失敗 / 未能", 
+            "follow": "跟隨 / 遵守", "rules": "規則", "write": "寫", "down": "下", "goals": "目標", "yourself": "你自己", 
+            "achieving": "達成", "them": "他們", "help": "幫助", "succeed": "成功", "airline": "航空公司", "passengers": "乘客", 
+            "face": "面對", "delays": "延誤", "ground": "地面", "staff": "員工", "refusal": "拒絕", "work": "工作", 
+            "working": "工作", "day": "天", "could": "可以", "beautiful": "美麗的", "sunset": "夕陽", "visible": "可見的", 
+            "from": "從", "office": "辦公室", "window": "窗戶", "while": "雖然 / 當", "lasted": "持續", "few": "少數", 
+            "minutes": "分鐘", "caused": "造成", "significant": "重大的", "several": "幾個", "buildings": "建築物", "downtown": "市區", 
+            "area": "區域", "real": "真實的", "team": "團隊", "effort": "努力", "everyone": "每個人", "something": "某事", 
+            "success": "成功", "project": "專案", "despite": "儘管", "tough": "艱難的", "circumstances": "情況", "had": "有 (過去式)", 
+            "strong": "強烈的", "leader": "領導者", "ability": "能力", "guide": "引導", "toward": "朝向", "successful": "成功的", 
+            "outcome": "結果", "after": "在...之後", "family": "家庭", "moved": "搬家", "another": "另一個", "city": "城市", 
+            "their": "他們的", "house": "房子", "remained": "保持", "months": "幾個月", "waiting": "等待", "new": "新的", 
+            "buyer": "買家", "used": "習慣於 / 使用", "long": "長的", "hours": "小時", "resulting": "導致", "decline": "下降", 
+            "overall": "整體的", "professional": "專業的", "need": "需要", "learn": "學習", "various": "各種的", "capturing": "捕捉", 
+            "perfect": "完美的", "shots": "鏡頭 / 照片", "bad": "壞的", "weather": "天氣", "conditions": "條件", "deleted": "刪除", 
+            "important": "重要的", "presentation": "簡報", "file": "檔案", "tomorrow": "明天", "meeting": "會議", "causing": "造成", 
+            "look": "看 / 尋找", "quick": "快速的", "solution": "解決方案", "first": "第一", "time": "時間", "different": "不同的", 
+            "cultures": "文化", "greeting": "打招呼", "faced": "面對", "every": "每一個", "difficulty": "困難", 
+            "with": "帶著 / 用", "positive": "正面的", "attitude": "態度", "believing": "相信", "hard": "努力的 / 困難的", "perseverance": "毅力", 
+            "would": "將會", "watching": "觀看", "movies": "電影", "popular": "受歡迎的", "hobby": "嗜好", "many": "許多", 
+            "some": "一些", "enjoy": "享受", "films": "電影", "exciting": "刺激的", "full": "充滿的", "romantic": "浪漫的", 
+            "comedy": "喜劇", "make": "製造 / 使", "feel": "感覺", "english": "英文", "language": "語言", "skills": "技能", 
+            "own": "自己的", "easier": "更容易的", "understand": "理解", "home": "家", "going": "去", "cinema": "電影院", 
+            "special": "特別的", "fun": "有趣", "friends": "朋友", "discussing": "討論", "favorite": "最喜歡的", "characters": "角色", 
+            "stories": "故事", "others": "其他人", "whether": "是否 / 無論", "blockbuster": "賣座鉅片", "small": "小的", "indie": "獨立的", 
+            "great": "棒的", "way": "方法 / 路", "everyday": "每天的", "life": "生活", "experience": "體驗 / 經驗", "kind": "種類", 
+            "airport": "機場", "zealand": "紐西蘭", "set": "設定", "three": "三", "minute": "分鐘", "farewell": "送別 / 告別", 
+            "hugs": "擁抱", "drop": "掉落 / 放下", "off": "離開", "zone": "區域", "rule": "規則", "marked": "標記", 
+            "sign": "標誌", "saying": "說", "max": "最大", "hug": "擁抱", "fonder": "更深情的", "farewells": "告別", 
+            "please": "請", "use": "使用", "car": "車", "park": "公園 / 停車", "meant": "意味著", "keep": "保持", 
+            "getting": "得到 / 變得", "too": "太", "crowded": "擁擠的", "chief": "首要的 / 首席", "executive": "執行長", "explained": "解釋", 
+            "that": "那個", "fines": "罰款", "warnings": "警告", "they": "他們", "wanted": "想要", "approach": "方法 / 接近", 
+            "encourage": "鼓勵", "along": "沿著", "goodbye": "再見", "noted": "指出", "places": "地方", "space": "空間", 
+            "stir": "轟動 / 攪拌", "online": "線上", "think": "認為", "idea": "點子", "unnecessary": "不必要的", "however": "然而", 
+            "there": "那裡", "will": "將會", "not": "不", "any": "任何", "embraces": "擁抱", "simply": "簡單地", 
+            "remind": "提醒", "taking": "花費 / 拿取", "types": "種類", "transportation": "交通", "daily": "日常的", "offer": "提供", 
+            "privacy": "隱私", "comfort": "舒適", "making": "製造", "ideal": "理想的", "families": "家庭", "trips": "旅行", 
+            "rely": "依賴", "public": "公共的", "like": "像 / 喜歡", "buses": "公車", "trains": "火車", "those": "那些", 
+            "who": "誰", "want": "想要", "stay": "保持 / 停留", "fit": "健康的 / 適合", "bicycles": "腳踏車", "choice": "選擇", 
+            "walking": "走路", "nearby": "附近的", "destinations": "目的地", "busy": "忙碌的", "cities": "城市", "subways": "地鐵", 
+            "trams": "路面電車", "provide": "提供", "fast": "快速的", "reliable": "可靠的", "travel": "旅行", "without": "沒有", 
+            "being": "正在", "delayed": "延誤", "road": "道路", "airplanes": "飛機", "quickest": "最快的", "option": "選項", 
+            "traveling": "旅行", "far": "遠的", "distances": "距離", "tend": "傾向", "ultimately": "最終", "decide": "決定", 
+            "how": "如何", "based": "基於", "factors": "因素", "artificial": "人工的", "intelligence": "智慧", "industry": "產業", 
+            "recent": "最近的", "years": "年", "been": "已經", "sounds": "聽起來 / 聲音", "was": "是 (過去式)", "made": "製造", 
+            "humans": "人類", "this": "這", "development": "發展", "has": "有", "brought": "帶來", "both": "兩者", 
+            "challenges": "挑戰", "one": "一", "main": "主要的", "advantages": "優點", "produced": "生產", "quickly": "快速地", 
+            "low": "低的", "cost": "成本", "tools": "工具", "artists": "藝術家", "create": "創造", "melodies": "旋律", 
+            "even": "甚至", "songs": "歌曲", "just": "只有 / 只是", "also": "也", "composers": "作曲家", "suggesting": "建議", 
+            "musical": "音樂的", "ideas": "點子", "creative": "有創造力的", "process": "過程", "faster": "更快的", "raises": "引起 / 舉起", 
+            "concerns": "擔憂", "musicians": "音樂家", "worry": "擔心", "replace": "取代", "human": "人類", "threaten": "威脅", 
+            "careers": "職業", "believe": "相信", "music": "音樂", "lacks": "缺乏", "depth": "深度", "bring": "帶來", 
+            "work": "工作 / 作品", "argue": "主張 / 爭論", "cannot": "不能", "truly": "真正地", "understand": "理解", "real": "真實的", 
+            "emotions": "情感", "brings": "帶來", "up": "上", "legal": "法律的", "ethical": "道德的", "questions": "問題", 
+            "example": "舉例", "hit": "暢銷的 / 打擊", "song": "歌曲", "owns": "擁有", "rights": "權利 / 版權", "developer": "開發者", 
+            "person": "人", "likely": "可能", "continue": "繼續", "growing": "成長", "changing": "改變", "find": "尋找", 
+            "balance": "平衡", "unique": "獨特的", "value": "價值", "creativity": "創造力"
+        };
 
-    <main class="max-w-4xl mx-auto px-4 mt-6">
-        <!-- Status Bar -->
-        <div class="flex justify-between items-center mb-4 min-h-[40px]">
-            <div id="pageInfo" class="text-slate-500 font-medium">載入中...</div>
-            <!-- 移除停止播放按鈕以避免畫面跳動 -->
-        </div>
-
-        <!-- Info Banner -->
-        <div class="flex items-center gap-2 text-sm text-slate-500 mb-6 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-            <i data-lucide="mic" class="w-4 h-4 text-yellow-600"></i>
-            <span>已啟用 <strong>自然語音</strong>。點擊 <strong>喇叭</strong> 唸整句，點擊 <strong>單字</strong> 個別發音。</span>
-        </div>
-
-        <!-- Content Area -->
-        <div id="phrasesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[500px] content-start">
-            <!-- 句子會由 JS 生成 -->
-        </div>
-
-        <!-- Pagination -->
-        <div id="pagination" class="flex justify-center items-center gap-6 mt-10 py-4 border-t border-slate-200">
-            <button id="prevBtn" class="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-full shadow-md hover:bg-indigo-50 transition-all active:scale-95 border border-slate-100 disabled:opacity-30">
-                <i data-lucide="chevron-left" class="w-6 h-6"></i> 上一頁
-            </button>
-            <button id="nextBtn" class="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-full shadow-md hover:bg-indigo-50 transition-all active:scale-95 border border-slate-100 disabled:opacity-30">
-                下一頁 <i data-lucide="chevron-right" class="w-6 h-6"></i>
-            </button>
-        </div>
-    </main>
-
-    <script>
-        const phrasesData = [
-            { en: "Time to go", cn: "該走了" }, { en: "Have a seat", cn: "請坐" }, { en: "Take your time", cn: "慢慢來" }, { en: "Nice try", cn: "嘗試得不錯" }, { en: "Help yourself", cn: "請自便" }, { en: "Got a minute?", cn: "有空嗎？" }, { en: "Come over", cn: "過來一下" }, { en: "Sounds good", cn: "聽起來不錯" }, { en: "Give me a call", cn: "給我打個電話" }, { en: "I can't get through", cn: "我打不通（電話）" },
-            { en: "After you", cn: "您先請" }, { en: "You're kidding", cn: "你在開玩笑吧" }, { en: "It's on me", cn: "我請客" }, { en: "I appreciate it", cn: "我很感激" }, { en: "Not at all", cn: "一點也不；沒關係" }, { en: "It doesn't fit", cn: "不合適；不合身" }, { en: "It's too tight", cn: "太緊了" }, { en: "You doing okay?", cn: "你還好嗎？" }, { en: "Feel better", cn: "感覺好點了嗎" }, { en: "I'll take this", cn: "我要買這個" },
-            { en: "Same here", cn: "我也一樣" }, { en: "Who's calling?", cn: "請問是哪位？" }, { en: "Hold your tongue", cn: "閉嘴；別亂說" }, { en: "Think it over", cn: "仔細考慮一下" }, { en: "It takes time", cn: "這需要時間" }, { en: "Allow me", cn: "讓我來" }, { en: "Way to go", cn: "做得好" }, { en: "Move over", cn: "挪過去一點" }, { en: "Any day will do", cn: "哪天都可以" }, { en: "Say again", cn: "請再說一遍" },
-            { en: "Come to the point", cn: "有話直說" }, { en: "It's about time", cn: "正是時候；早該如此" }, { en: "I'm home", cn: "我到家了" }, { en: "It's chilly out", cn: "外面很冷" }, { en: "Since when?", cn: "從什麼時候開始？" }, { en: "Where to?", cn: "去哪裡？" }, { en: "Come along", cn: "跟上；一起來" }, { en: "Wait for me", cn: "等等我" }, { en: "Get down", cn: "蹲下；下來" }, { en: "Hold on tight", cn: "抓緊" },
-            { en: "Take it easy", cn: "放輕鬆" }, { en: "What's up", cn: "怎麼了？" }, { en: "Not much", cn: "沒什麼" }, { en: "Can't complain", cn: "還過得去；沒什麼好抱怨的" }, { en: "Why not", cn: "為什麼不呢？" }, { en: "Give me a break", cn: "饒了我吧；別開玩笑了" }, { en: "Listen up", cn: "聽好了" }, { en: "Absolutely not", cn: "絕對不行" }, { en: "Neither do I", cn: "我也不會" }, { en: "Sort of", cn: "算是吧；有一點" },
-            { en: "Good job", cn: "做得好" }, { en: "No kidding", cn: "不是開玩笑的" }, { en: "Who cares", cn: "誰在乎" }, { en: "Not really", cn: "不完全是" }, { en: "Time's up", cn: "時間到" }, { en: "Is that clear?", cn: "清楚了嗎？" }, { en: "Not exactly", cn: "不完全如此" }, { en: "That's right", cn: "沒錯" }, { en: "What else", cn: "還有什麼？" }, { en: "Just checking", cn: "只是確認一下" },
-            { en: "Ready to go", cn: "準備好出發了" }, { en: "Not yet", cn: "還沒" }, { en: "How come", cn: "怎麼會？" }, { en: "That's impossible", cn: "那不可能" }, { en: "Think twice", cn: "三思而後行" }, { en: "It's up to you", cn: "由你決定" }, { en: "No problem", cn: "沒問題" }, { en: "Here I am", cn: "我來了" }, { en: "That's true", cn: "那是真的" }, { en: "My mistake", cn: "我的錯" },
-            { en: "Guess what", cn: "你猜怎麼著" }, { en: "Try some", cn: "試一點" }, { en: "That's it", cn: "就這樣" }, { en: "Hold on", cn: "等一下" }, { en: "Take care", cn: "保重" }, { en: "Like what", cn: "像什麼？" }, { en: "You look tired", cn: "你看起來很累" }, { en: "Leave me alone", cn: "讓我一個人靜靜" }, { en: "Don't bug me", cn: "別煩我" }, { en: "Watch out", cn: "小心" },
-            { en: "Trust me", cn: "相信我" }, { en: "Got it", cn: "明白了" }, { en: "Anything new", cn: "有什麼新鮮事嗎？" }, { en: "Let me see", cn: "讓我看看" }, { en: "What for", cn: "為了什麼？" }, { en: "Not bad", cn: "不錯" }, { en: "I swear", cn: "我發誓" }, { en: "Touch wood", cn: "敲敲木頭（求好運）" }, { en: "I made it", cn: "我做到了" }, { en: "Calm down", cn: "冷靜點" },
-            { en: "Stop it", cn: "住手；別做了" }, { en: "Time will tell", cn: "時間會證明一切" }, { en: "Keep going", cn: "繼續" }, { en: "Have fun", cn: "玩得開心" }, { en: "We are all ears", cn: "我們洗耳恭聽" }, { en: "I'd rather not", cn: "我寧願不要" }, { en: "Stop being rude", cn: "別這麼沒禮貌" }, { en: "Could be", cn: "可能是吧" }, { en: "Come on in", cn: "進來吧" }, { en: "Let it be", cn: "順其自然" }
+        const testData = [
+            {
+                id: "1", type: "single",
+                en: "1. Unfortunately, Jimmy and his colleague were the only ___ of the car accident. All others tragically lost their lives.",
+                zh: "不幸地，Jimmy和他的同事是這場車禍中唯一的___。其他所有人都悲慘地喪生了。",
+                options: [ { key: "A", en: "carmakers", zh: "汽車製造商" }, { key: "B", en: "landlords", zh: "房東" }, { key: "C", en: "magicians", zh: "魔術師" }, { key: "D", en: "survivors", zh: "生還者" } ],
+                answer: "D",
+                explanation: "字根聯想法：survive (存活) + -or (表「人」的字尾) = 存活下來的人。後文提到其他人都喪生了，因此填入生還者。"
+            },
+            {
+                id: "2", type: "single",
+                en: "2. She missed the train because she ___ 18:30 as 8:30 p.m. instead of 6:30 p.m.",
+                zh: "她錯過了火車，因為她把18:30___成晚上8:30，而不是晚上6:30。",
+                options: [ { key: "A", en: "avoided", zh: "避免" }, { key: "B", en: "ignored", zh: "忽略" }, { key: "C", en: "misread", zh: "看錯 / 誤讀" }, { key: "D", en: "observed", zh: "觀察" } ],
+                answer: "C",
+                explanation: "字首拆解法：mis- (錯誤) + read (讀取) = 看錯。她把18:30看錯成晚上8:30，所以錯過了火車。"
+            },
+            {
+                id: "3", type: "single",
+                en: "3. Regular exercise is essential to ___ good health, especially when you spend most of your day sitting at a desk.",
+                zh: "規律的運動對於___身體健康是不可或缺的，特別是當你一天中大部分時間都坐在書桌前時。",
+                options: [ { key: "A", en: "decreasing", zh: "減少" }, { key: "B", en: "expanding", zh: "擴展" }, { key: "C", en: "maintaining", zh: "維持 / 保養" }, { key: "D", en: "neglecting", zh: "忽略" } ],
+                answer: "C",
+                explanation: "常見搭配詞：maintain good health (維持身體健康)。規律運動對於「維持」健康是不可或缺的。"
+            },
+            {
+                id: "4", type: "single",
+                en: "4. The spider dropped on her hand and triggered an ___ reaction; she cried out and jumped onto the nearest chair.",
+                zh: "蜘蛛掉在她的手上並引發了___反應；她大叫並跳到最近的椅子上。",
+                options: [ { key: "A", en: "accurate", zh: "準確的" }, { key: "B", en: "instant", zh: "立即的 / 瞬間的" }, { key: "C", en: "opposite", zh: "相反的" }, { key: "D", en: "upright", zh: "直立的" } ],
+                answer: "B",
+                explanation: "生活聯想法：instant noodles 是泡麵(即食品)，instant reaction 就是碰到蜘蛛時「立刻、瞬間」的反射動作。"
+            },
+            {
+                id: "5", type: "single",
+                en: "5. After studying under famous chefs in Paris for ten years, David has become a ___ of French cuisine.",
+                zh: "在巴黎跟隨著名廚師學習了十年之後，David已經成為法國料理的___。",
+                options: [ { key: "A", en: "composer", zh: "作曲家" }, { key: "B", en: "master", zh: "大師" }, { key: "C", en: "novice", zh: "新手" }, { key: "D", en: "visitor", zh: "訪客" } ],
+                answer: "B",
+                explanation: "邏輯推導：在巴黎跟隨名廚學習了「十年 (ten years)」，理所當然會成為法國料理的「大師」。"
+            },
+            {
+                id: "6", type: "single",
+                en: "6. Dealing with the academic demands can be quite ___ and tricky for high school students.",
+                zh: "應付學業要求對高中生來說可能是相當___和棘手的。",
+                options: [ { key: "A", en: "manual", zh: "手動的" }, { key: "B", en: "liberal", zh: "開明的" }, { key: "C", en: "deceiving", zh: "欺騙的" }, { key: "D", en: "challenging", zh: "具挑戰性的" } ],
+                answer: "D",
+                explanation: "語意並列：空格與 tricky (棘手的) 並列，需選負擔重、有難度的詞。challenge (挑戰) 加 -ing 變形容詞。"
+            },
+            {
+                id: "7", type: "single",
+                en: "7. Knowing the health risks to their lungs, many young people still experiment with ___ due to peer pressure.",
+                zh: "儘管知道對肺部的健康風險，許多年輕人仍因為同儕壓力而嘗試___。",
+                options: [ { key: "A", en: "density", zh: "密度" }, { key: "B", en: "glamour", zh: "魅力" }, { key: "C", en: "spinach", zh: "菠菜" }, { key: "D", en: "tobacco", zh: "菸草" } ],
+                answer: "D",
+                explanation: "關鍵字對應：題目提到 lungs (肺部) 的健康風險，選項中只有「菸草」會對肺部造成直接危害。"
+            },
+            {
+                id: "8", type: "single",
+                en: "8. Jack often gets into trouble at school because of his frequent ___, such as talking back to the teachers and failing to follow the rules.",
+                zh: "Jack經常在學校惹麻煩，因為他頻繁的___，例如頂撞老師和不守規矩。",
+                options: [ { key: "A", en: "excitement", zh: "興奮" }, { key: "B", en: "interpretation", zh: "解釋" }, { key: "C", en: "misbehavior", zh: "不良行為" }, { key: "D", en: "shortage", zh: "短缺" } ],
+                answer: "C",
+                explanation: "字首拆解法：mis- (錯誤/不良) + behavior (行為)。頂嘴和不守規矩都是典型的「不良行為」。"
+            },
+            {
+                id: "9", type: "single",
+                en: "9. Write down your goals and ___ yourself achieving them. This will help you succeed.",
+                zh: "寫下你的目標並___自己達成它們的畫面。這將幫助你成功。",
+                options: [ { key: "A", en: "control", zh: "控制" }, { key: "B", en: "defend", zh: "防禦" }, { key: "C", en: "nominate", zh: "提名" }, { key: "D", en: "visualize", zh: "想像 / 使形象化" } ],
+                answer: "D",
+                explanation: "字根聯想法：visual (視覺的) + -ize (動詞化) = 在腦海中看見畫面。寫下目標並「想像」自己達成它們。"
+            },
+            {
+                id: "10", type: "single",
+                en: "10. Many airline passengers face ___ delays because of the ground staff's refusal to work.",
+                zh: "許多航空公司乘客面臨___的延誤，因為地勤人員拒絕工作（罷工）。",
+                options: [ { key: "A", en: "lengthy", zh: "漫長的 / 冗長的" }, { key: "B", en: "modern", zh: "現代的" }, { key: "C", en: "optional", zh: "可選擇的" }, { key: "D", en: "selfish", zh: "自私的" } ],
+                answer: "A",
+                explanation: "字尾推導：length (長度) + -y (形容詞字尾) = 漫長的。地勤罷工通常會導致「漫長的」班機延誤。"
+            },
+            {
+                id: "11", type: "single",
+                en: "11. Though Sarah was tired after working all day, she could still ___ the beautiful sunset that was visible from her office window.",
+                zh: "儘管Sarah工作了一整天很累，她仍然能___從她辦公室窗戶可以看到的美麗夕陽。",
+                options: [ { key: "A", en: "appreciate", zh: "欣賞 / 感謝" }, { key: "B", en: "consider", zh: "考慮" }, { key: "C", en: "perceive", zh: "察覺" }, { key: "D", en: "recover", zh: "恢復" } ],
+                answer: "A",
+                explanation: "常見搭配詞：appreciate the beautiful sunset (欣賞美麗的夕陽)。儘管很累，她依然能「欣賞」美景。"
+            },
+            {
+                id: "12", type: "single",
+                en: "12. While the earthquake only lasted for a few minutes, it caused significant ___ to several buildings in the downtown area.",
+                zh: "雖然地震只持續了幾分鐘，但它對市區的幾棟建築物造成了重大的___。",
+                options: [ { key: "A", en: "content", zh: "內容 / 滿足" }, { key: "B", en: "damage", zh: "損害 / 破壞" }, { key: "C", en: "harmony", zh: "和諧" }, { key: "D", en: "pleasure", zh: "愉悅" } ],
+                answer: "B",
+                explanation: "常識因果：earthquake (地震) 會對建築物造成重大的「損害 (damage)」。"
+            },
+            {
+                id: "13", type: "single",
+                en: "13. It was a real team effort. Everyone ___ something to the success of the project.",
+                zh: "這是一次真正的團隊合作。每個人都為專案的成功___了些什麼。",
+                options: [ { key: "A", en: "anticipated", zh: "預期" }, { key: "B", en: "contributed", zh: "貢獻" }, { key: "C", en: "persuaded", zh: "說服" }, { key: "D", en: "relieved", zh: "減輕" } ],
+                answer: "B",
+                explanation: "文法搭配：contribute to + N (對...有貢獻)。這是團隊努力的結果，每個人都為專案的成功「做出了貢獻」。"
+            },
+            {
+                id: "14", type: "single",
+                en: "14. Despite the tough circumstances, the team had strong ___ in their leader's ability to guide them toward a successful outcome.",
+                zh: "儘管情況艱難，團隊對他們的領導者引導他們走向成功結果的能力抱有強烈的___。",
+                options: [ { key: "A", en: "concern", zh: "擔憂" }, { key: "B", en: "doubt", zh: "懷疑" }, { key: "C", en: "faith", zh: "信心 / 信任" }, { key: "D", en: "interest", zh: "興趣" } ],
+                answer: "C",
+                explanation: "片語記憶：have faith in someone (對某人有信心)。儘管環境艱困，團隊對領導者仍抱有強烈的「信心」。"
+            },
+            {
+                id: "15", type: "single",
+                en: "15. After the family moved to another city, their house remained ___ for several months, waiting for a new buyer.",
+                zh: "在這家人搬到另一個城市後，他們的房子___了好幾個月，等待著新買家。",
+                options: [ { key: "A", en: "absent", zh: "缺席的" }, { key: "B", en: "crammed", zh: "塞滿的" }, { key: "C", en: "occupied", zh: "被佔用的" }, { key: "D", en: "vacant", zh: "空置的 / 空著的" } ],
+                answer: "D",
+                explanation: "情境聯想：家人搬走了，房子在等待新買家期間當然是「空置的 (vacant)」。(字根 vac- 表「空」，如 vacuum 真空)。"
+            },
+            {
+                id: "16", type: "single",
+                en: "16. Helen used to work ___ long hours, resulting in burnout and a decline in her overall health.",
+                zh: "Helen過去經常___長時間工作，導致過勞和整體健康狀況下降。",
+                options: [ { key: "A", en: "excessively", zh: "過度地" }, { key: "B", en: "infrequently", zh: "不頻繁地" }, { key: "C", en: "moderately", zh: "適度地" }, { key: "D", en: "respectfully", zh: "恭敬地" } ],
+                answer: "A",
+                explanation: "因果推導：導致 burnout (過勞) 及健康下滑的原因，必定是因為「過度地」長時間工作。"
+            },
+            {
+                id: "17", type: "single",
+                en: "17. Professional photographers need to learn various ___ for capturing perfect shots in bad weather conditions.",
+                zh: "專業攝影師需要學習各種___，以便在惡劣天氣條件下捕捉完美的鏡頭。",
+                options: [ { key: "A", en: "analogies", zh: "類比" }, { key: "B", en: "calculations", zh: "計算" }, { key: "C", en: "incentives", zh: "動機 / 誘因" }, { key: "D", en: "techniques", zh: "技巧 / 技術" } ],
+                answer: "D",
+                explanation: "職業聯想：專業攝影師 (photographers) 必須學習各種拍攝的「技巧 (techniques)」才能拍出完美照片。"
+            },
+            {
+                id: "18", type: "single",
+                en: "18. Tom ___ deleted an important presentation file for tomorrow's meeting, causing him to look for a quick solution.",
+                zh: "Tom___刪除了明天會議的重要簡報檔案，促使他尋找快速的解決方案。",
+                options: [ { key: "A", en: "accidentally", zh: "意外地 / 不小心地" }, { key: "B", en: "dishonestly", zh: "不誠實地" }, { key: "C", en: "evidently", zh: "明顯地" }, { key: "D", en: "realistically", zh: "寫實地" } ],
+                answer: "A",
+                explanation: "情境聯想：刪除明天開會要用的重要檔案，通常都是「不小心、意外地 (accidentally)」發生的失誤。"
+            },
+            {
+                id: "19", type: "single",
+                en: "19. When meeting someone for the first time in different cultures, a handshake or bow is often used as a ___ of greeting.",
+                zh: "在不同文化中第一次與人見面時，握手或鞠躬通常被用作一種打招呼的___。",
+                options: [ { key: "A", en: "gesture", zh: "姿勢 / 手勢" }, { key: "B", en: "reminder", zh: "提醒" }, { key: "C", en: "separation", zh: "分離" }, { key: "D", en: "warning", zh: "警告" } ],
+                answer: "A",
+                explanation: "字義對應：handshake (握手) 和 bow (鞠躬) 都是打招呼時所使用的「手勢 / 姿態 (gesture)」。"
+            },
+            {
+                id: "20", type: "single",
+                en: "20. She faced every difficulty with a positive attitude, believing that hard work and perseverance would ___ to success.",
+                zh: "她以積極的態度面對每一個困難，相信努力工作和毅力會___成功。",
+                options: [ { key: "A", en: "answer", zh: "回答" }, { key: "B", en: "move", zh: "移動" }, { key: "C", en: "lead", zh: "導致 / 通向" }, { key: "D", en: "prefer", zh: "偏好" } ],
+                answer: "C",
+                explanation: "片語記憶：lead to + 名詞 (通往... / 導致...)。她相信努力和毅力會「通往」成功。"
+            },
+            {
+                id: "group_1", type: "reading", title: "題組 21-25",
+                article_en: "Watching movies is a popular hobby for many people. Some enjoy watching action or adventure films because they are exciting and full of (21) ___. Others prefer romantic or comedy movies that make them feel (22) ___ and relaxed. Some students like to watch movies in English to (23) ___ their language skills, while others prefer films in their own language because it is easier to understand. Watching movies at home is (24) ___ and convenient, but going to the cinema can feel special and fun, especially with friends. Many students enjoy discussing their favorite characters or stories with others after watching. Whether it is a blockbuster or a small indie film, movies are a great way to (25) ___ everyday life and experience something new. What kind of movies do you like to watch?",
+                article_zh: "看電影是許多人受歡迎的嗜好。有些人喜歡看動作片或冒險片，因為它們很刺激且充滿了 (21) ___。其他人則偏好能讓他們感到 (22) ___ 和放鬆的浪漫片或喜劇片。有些學生喜歡看英文電影來 (23) ___ 他們的語言能力，而其他人則偏好看自己母語的電影，因為這樣比較容易理解。在家看電影既 (24) ___ 又方便，但去電影院會讓人覺得特別又有趣，尤其是和朋友一起去的時候。許多學生喜歡在觀影後與其他人討論他們最喜歡的角色或故事。無論是賣座鉅片還是一部小型的獨立電影，電影都是一個能讓人 (25) ___ 日常生活並體驗新事物的好方法。你喜歡看哪種類型的電影呢？",
+                questions: [
+                    { id: "21", en: "21. Some enjoy watching action or adventure films because they are exciting and full of (21) ___.", zh: "有些人喜歡看動作片或冒險片，因為它們很刺激且充滿了 (21) ___。", options: [{key:"A",en:"endings",zh:"結局"},{key:"B",en:"opportunities",zh:"機會"},{key:"C",en:"routines",zh:"例行公事"},{key:"D",en:"surprises",zh:"驚喜"}], answer: "D", explanation: "語境推導：動作片(action)與冒險片(adventure)的特色就是刺激且充滿了「驚奇 (surprises)」。" },
+                    { id: "22", en: "22. Others prefer romantic or comedy movies that make them feel (22) ___ and relaxed.", zh: "其他人則偏好能讓他們感到 (22) ___ 和放鬆的浪漫片或喜劇片。", options: [{key:"A",en:"furious",zh:"狂怒的"},{key:"B",en:"happy",zh:"快樂的"},{key:"C",en:"lonely",zh:"寂寞的"},{key:"D",en:"tired",zh:"疲累的"}], answer: "B", explanation: "語意並列：與 relaxed (放鬆的) 並列的正面情緒。看浪漫喜劇片會讓人感到「快樂 (happy)」。" },
+                    { id: "23", en: "23. Some students like to watch movies in English to (23) ___ their language skills...", zh: "有些學生喜歡看英文電影來 (23) ___ 他們的語言能力...", options: [{key:"A",en:"engage",zh:"參與"},{key:"B",en:"improve",zh:"改善"},{key:"C",en:"speak",zh:"說話"},{key:"D",en:"wonder",zh:"納悶"}], answer: "B", explanation: "常見搭配詞：improve skills (增進技能)。看英文電影的目的通常是為了「增進」語言能力。" },
+                    { id: "24", en: "24. Watching movies at home is (24) ___ and convenient...", zh: "在家看電影既 (24) ___ 又方便...", options: [{key:"A",en:"comfortable",zh:"舒適的"},{key:"B",en:"familiar",zh:"熟悉的"},{key:"C",en:"hardworking",zh:"勤奮的"},{key:"D",en:"stressful",zh:"有壓力的"}], answer: "A", explanation: "語意並列：與 convenient (方便的) 並列的優點。在家看電影既「舒適 (comfortable)」又方便。" },
+                    { id: "25", en: "25. ...movies are a great way to (25) ___ everyday life and experience something new.", zh: "...電影是一個能讓人 (25) ___ 日常生活並體驗新事物的好方法。", options: [{key:"A",en:"convince",zh:"說服"},{key:"B",en:"escape",zh:"逃避"},{key:"C",en:"predict",zh:"預測"},{key:"D",en:"watch",zh:"觀看"}], answer: "B", explanation: "片語記憶：escape everyday life (逃離日常生活的繁瑣)。電影是讓人暫時抽離現實的好方法。" }
+                ]
+            },
+            {
+                id: "group_2", type: "reading", title: "題組 26-30",
+                article_en: "Dunedin Airport in New Zealand has set a three-minute limit (26) ___ farewell hugs in its drop-off zone. The rule, marked by a sign saying “Max hug time 3 minutes. For fonder farewells please use the car park,” is meant to keep the area from getting too crowded. Dan De Bono, the airport’s chief executive, explained that (27) ___ using harsh fines or warnings, they wanted a friendly approach to encourage people to move along after saying goodbye. He noted that while airports are emotional places (28) ___ farewells are often long, it is important to make space for everyone. The new rule has caused quite a stir online. Some people think it is a fun idea, while others feel it is unnecessary. However, there will not be any “hug police” (29) ___ embraces; staff will simply remind people to move (30) ___ they are taking too long.",
+                article_zh: "紐西蘭的達尼丁機場在其下車區（臨停區）對送別擁抱設下了三分鐘的限制 (26) ___。這項規定由一個寫著「最長擁抱時間3分鐘。若要更深情的告別，請使用停車場」的告示牌來標示，目的是為了防止該區域變得過於擁擠。該機場的執行長 Dan De Bono 解釋說，(27) ___ 使用嚴厲的罰款或警告，他們希望用一種友善的方式來鼓勵人們在道別後繼續往前移動。他指出，雖然機場是個充滿情感的地方，(28) ___ 告別的時間通常都很長，但為每個人騰出空間是很重要的。這項新規定在網路上引起了不小的轟動。有些人認為這是一個有趣的點子，而其他人則覺得這沒有必要。然而，這裡不會有任何「擁抱警察」來為擁抱 (29) ___；(30) ___ 人們花費了太長時間，工作人員只會簡單地提醒他們移動。",
+                questions: [
+                    { id: "26", en: "26. Dunedin Airport in New Zealand has set a three-minute limit (26) ___ farewell hugs...", zh: "紐西蘭的達尼丁機場在下車區對送別擁抱設下了三分鐘的限制 (26) ___。", options: [{key:"A",en:"about",zh:"關於"},{key:"B",en:"between",zh:"在...之間"},{key:"C",en:"into",zh:"進入"},{key:"D",en:"on",zh:"在...之上"}], answer: "D", explanation: "介系詞搭配：put a limit on sth. (對...設下限制)。" },
+                    { id: "27", en: "27. ...explained that (27) ___ using harsh fines or warnings, they wanted a friendly approach...", zh: "...解釋說，(27) ___ 使用嚴厲的罰款或警告，他們想要用一種友善的方式...", options: [{key:"A",en:"apart",zh:"除了...之外"},{key:"B",en:"spite",zh:"儘管"},{key:"C",en:"except",zh:"除了...以外"},{key:"D",en:"rather",zh:"而不是"}], answer: "D", explanation: "前後對比：句意為「『而不是』使用嚴厲的罰款，他們想要用友善的方式」。前後形成強烈對比。" },
+                    { id: "28", en: "28. He noted that while airports are emotional places (28) ___ farewells are often long...", zh: "他指出，雖然機場是充滿情感的地方，(28) ___ 送別通常很長...", options: [{key:"A",en:"what",zh:"什麼"},{key:"B",en:"where",zh:"在哪裡"},{key:"C",en:"which",zh:"哪一個"},{key:"D",en:"whose",zh:"誰的"}], answer: "B", explanation: "文法解析：先行詞為 places (地方)，後方為完整子句，因此需使用關係副詞 where 來引導。" },
+                    { id: "29", en: "29. However, there will not be any \"hug police\" (29) ___ embraces;", zh: "然而，不會有任何「擁抱警察」來 (29) ___ 擁抱時間；", options: [{key:"A",en:"had timed",zh:"過去完成式"},{key:"B",en:"has timed",zh:"現在完成式"},{key:"C",en:"timed",zh:"過去分詞"},{key:"D",en:"timing",zh:"計時"}], answer: "D", explanation: "分詞構句：修飾名詞 hug police，表示主動進行「計時」的動作，需使用現在分詞 V-ing。" },
+                    { id: "30", en: "30. ...staff will simply remind people to move (30) ___ they are taking too long.", zh: "...工作人員只會簡單地提醒人們移動 (30) ___ 他們花費太多時間。", options: [{key:"A",en:"if",zh:"如果"},{key:"B",en:"though",zh:"雖然"},{key:"C",en:"until",zh:"直到"},{key:"D",en:"whereas",zh:"然而"}], answer: "A", explanation: "條件句邏輯：「如果 (if)」他們花費太多時間，員工就會簡單地提醒他們移動。" }
+                ]
+            },
+            {
+                id: "group_3", type: "reading", title: "題組 31-35",
+                article_en: "There are many types of transportation people use in their daily lives. Some prefer cars because they offer privacy and comfort, making them ideal for families or long trips. Others rely on public transportation, like buses and trains, which are economical and more eco-friendly. For those who want to stay fit and avoid traffic, bicycles are a great choice, while walking is perfect for nearby destinations. In busy cities, subways and trams provide a fast and reliable way to travel without being delayed by road congestion. Airplanes are the quickest option for traveling far distances, but they tend to be costly. Ultimately, people decide how to travel based on factors like convenience, expense, and how far they need to go.",
+                article_zh: "人們在日常生活中會使用許多種類的交通工具。有些人偏好汽車，因為它們提供隱私與舒適，使其成為家庭或長途旅行的理想選擇。其他人則依賴大眾運輸工具，像是公車和火車，它們既經濟實惠又更具環保效益。對於那些想要保持健康並避開交通壅塞的人來說，腳踏車是一個很棒的選擇，而走路則非常適合前往附近的目的地。在繁忙的城市中，地鐵和路面電車提供了一種快速且可靠的旅行方式，不會因道路壅塞而受到延誤。飛機是長途旅行最快的選擇，但它們往往很昂貴。最終，人們會根據便利性、花費以及他們需要前往的距離等因素，來決定要如何出行。",
+                questions: [
+                    { id: "31", en: "31. Why do some people prefer cars, according to the passage?", zh: "根據文章，為什麼有些人偏好汽車？", options: [{key:"A",en:"They are clearly the fastest option for travel.",zh:"最快的選擇"},{key:"B",en:"They can help people avoid crowded areas.",zh:"避開擁擠區域"},{key:"C",en:"They provide a relaxing personal space.",zh:"提供放鬆個人空間"},{key:"D",en:"They seem safest and easiest for long trips.",zh:"最安全簡單"}], answer: "C", explanation: "文章提到 Cars ... offer privacy and comfort (提供隱私與舒適)，對應選項的 personal space。" },
+                    { id: "32", en: "32. What makes public transportation popular, according to the passage?", zh: "根據文章，是什麼讓大眾運輸受歡迎？", options: [{key:"A",en:"It is affordable and good for the environment.",zh:"負擔得起且對環境友善"},{key:"B",en:"It is faster because it avoids road construction.",zh:"更快避開施工"},{key:"C",en:"It is helpful for shy people to connect with friends.",zh:"有助於害羞的人"},{key:"D",en:"It is perfect for shorter journeys within the city.",zh:"適合短途"}], answer: "A", explanation: "文章提到大眾運輸是 economical and more eco-friendly (經濟實惠且更環保)。" },
+                    { id: "33", en: "33. Which transportation is a good choice for health-conscious people, according to the passage?", zh: "根據文章，哪種交通工具是注重健康的人的好選擇？", options: [{key:"A",en:"Bikes.",zh:"腳踏車"},{key:"B",en:"Buses.",zh:"公車"},{key:"C",en:"Trains.",zh:"火車"},{key:"D",en:"Trams.",zh:"路面電車"}], answer: "A", explanation: "文章提到對於想 stay fit (保持健康身材) 的人來說，bicycles are a great choice。" },
+                    { id: "34", en: "34. What is the disadvantage of traveling by airplane, according to the passage?", zh: "根據文章，搭飛機旅行的缺點是什麼？", options: [{key:"A",en:"It can be scary for some travelers.",zh:"可能很可怕"},{key:"B",en:"It creates delays during busy hours.",zh:"會造成延誤"},{key:"C",en:"It is crowded and uncomfortable.",zh:"很擁擠且不舒服"},{key:"D",en:"It is expensive for long journeys.",zh:"很昂貴"}], answer: "D", explanation: "文章提到搭飛機最快，但 they tend to be costly (它們往往很昂貴)。" },
+                    { id: "35", en: "35. What helps people select their mode of transportation, according to the passage?", zh: "根據文章，什麼幫助人們選擇他們的交通方式？", options: [{key:"A",en:"The availability of public services.",zh:"公共服務的可用性"},{key:"B",en:"The need for exercise and privacy.",zh:"運動和隱私的需求"},{key:"C",en:"The price, ease, and distance.",zh:"價格、便利性與距離"},{key:"D",en:"The time of day and traffic patterns.",zh:"時間與交通模式"}], answer: "C", explanation: "文章結論指出選擇取決於 convenience, expense, and how far they need to go (便利、花費與距離)。" }
+                ]
+            },
+            {
+                id: "group_4", type: "reading", title: "題組 36-40",
+                article_en: "Artificial intelligence (AI) is transforming the music industry. In recent years, AI has been used to create music that sounds like it was made by humans. This development has brought both opportunities and challenges to the industry.\n\nOne of the main advantages of AI-made music is that it can be produced quickly and at a low cost. With AI tools, artists can create new sounds, melodies, and even full songs in just a few minutes. AI can also help composers by suggesting musical ideas, making the creative process faster and easier.\n\nHowever, AI-made music also raises some concerns. Some musicians worry that AI could replace human artists and threaten their music careers. Others believe that AI music lacks emotional depth that human musicians bring to their work. They argue that AI cannot truly understand real emotions.\n\nAI-made music also brings up legal and ethical questions. For example, if an AI creates a hit song, who owns the rights to that song—the AI developer or the person who used it?\n\nAI-made music is likely to continue growing and changing the music industry. It is up to the industry to find a balance between the advantages of AI and the unique value of human creativity.",
+                article_zh: "人工智慧 (AI) 正在改變音樂產業。近年來，AI 已被用來創作聽起來像是人類製作的音樂。這項發展為該產業帶來了機遇與挑戰。\n\nAI 製作音樂的主要優點之一是，它可以快速且低成本地產出。藉助 AI 工具，藝術家可以在短短幾分鐘內創造出新的聲音、旋律，甚至是完整的歌曲。AI 還可以透過提供音樂上的靈感來幫助作曲家，使創作過程變得更快、更容易。\n\n然而，AI 製作的音樂也引起了一些擔憂。有些音樂家擔心 AI 可能會取代人類藝術家，並威脅他們的音樂職業生涯。其他人則認為，AI 音樂缺乏人類音樂家賦予作品的情感深度。他們主張 AI 無法真正理解真實的情感。\n\nAI 製作的音樂同時也帶來了法律與道德問題。舉例來說，如果 AI 創作了一首暢銷歌曲，誰擁有那首歌的權利（版權）——是 AI 開發者還是使用它的人？\n\nAI 製作的音樂可能會持續成長並改變音樂產業。這有賴於該產業在 AI 的優勢與人類創造力的獨特價值之間找到平衡。",
+                questions: [
+                    { id: "36", en: "36. According to the passage, what is the benefit of using AI to create music?", zh: "根據文章，使用AI創作音樂的好處是什麼？", options: [{key:"A",en:"It allows for better collaboration between artists.",zh:"允許更好的合作"},{key:"B",en:"It enhances the quality of music production.",zh:"提升音樂品質"},{key:"C",en:"It helps human artists develop their unique style.",zh:"發展獨特風格"},{key:"D",en:"It saves time and money in music production.",zh:"在音樂製作上省時省錢"}], answer: "D", explanation: "文章提到 AI 製作音樂的最大優勢是 produced quickly and at a low cost (能快速且低成本製作)。" },
+                    { id: "37", en: "37. Why are some musicians concerned about AI-made music?", zh: "為什麼有些音樂家對AI製作的音樂感到擔憂？", options: [{key:"A",en:"AI could make human musicians unnecessary.",zh:"可能使人類音樂家變得不必要"},{key:"B",en:"It is simply too expensive to produce AI music.",zh:"太貴了"},{key:"C",en:"They do not have a big AI music production team.",zh:"沒有龐大團隊"},{key:"D",en:"Using AI to create music is very complex.",zh:"非常複雜"}], answer: "A", explanation: "文章指出音樂家擔憂 AI could replace human artists (AI 可能取代人類藝術家)。" },
+                    { id: "38", en: "38. What does the passage suggest about AI's ability to experience emotions?", zh: "文章對於AI體驗情感的能力有何暗示？", options: [{key:"A",en:"AI can learn emotions from human musicians.",zh:"可以學習情感"},{key:"B",en:"AI is able to replicate human emotions.",zh:"能夠複製人類情感"},{key:"C",en:"AI lacks the ability to feel emotions like humans.",zh:"缺乏感受情感的能力"},{key:"D",en:"AI understands emotions better than humans.",zh:"比人類更了解情感"}], answer: "C", explanation: "文章提到反對者主張 AI cannot truly understand real emotions (AI 無法真正理解真實情感)。" },
+                    { id: "39", en: "39. The passage mentions a legal challenge regarding AI-made music. What is this challenge mainly about?", zh: "文章提到了一個關於AI製作音樂的法律挑戰。這個挑戰主要是關於什麼？", options: [{key:"A",en:"How can musicians add emotions to AI-made music?",zh:"如何加入情感"},{key:"B",en:"How do we improve the quality of AI-made music?",zh:"如何提升品質"},{key:"C",en:"Who possesses the rights to AI-made music?",zh:"誰擁有權利/版權"},{key:"D",en:"Who will protect AI-made music from piracy?",zh:"誰來保護免受盜版"}], answer: "C", explanation: "文章提出的法律疑問是 who owns the rights to that song (誰擁有那首歌的權利)。" },
+                    { id: "40", en: "40. Which of the following is the best title for this passage?", zh: "下列哪一項是這篇文章最好的標題？", options: [{key:"A",en:"How AI Is Changing Music Production",zh:"AI如何正在改變音樂製作"},{key:"B",en:"The Costs of AI Technology in the Music Industry",zh:"AI技術的成本"},{key:"C",en:"The End of Human Creativity in Music",zh:"創造力的終結"},{key:"D",en:"Why AI Music Will Replace Human Artists",zh:"為何將取代人類藝術家"}], answer: "A", explanation: "文章首句即破題 AI is transforming the music industry，並客觀論述了優點與挑戰，(A)最為全面。" }
+                ]
+            }
         ];
 
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let filteredData = [...phrasesData];
-        let synth = window.speechSynthesis;
-        let voices = [];
+        const { useState, useEffect, useRef } = React;
 
-        // 初始化語音庫
-        function initVoices() {
-            voices = synth.getVoices();
-        }
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = initVoices;
-        }
+        // 工具：拆解字串為可點擊單字
+        const ClickableText = ({ text, onWordClick }) => {
+            const parts = text.split(/([a-zA-Z]+(?:'[a-zA-Z]+)?)/g);
+            return (
+                <span>
+                    {parts.map((part, index) => {
+                        if (/^[a-zA-Z]+(?:'[a-zA-Z]+)?$/.test(part)) {
+                            return (
+                                <span 
+                                    key={index} 
+                                    onClick={(e) => { e.stopPropagation(); onWordClick(part); }}
+                                    className="clickable-word font-medium"
+                                >
+                                    {part}
+                                </span>
+                            );
+                        }
+                        return <span key={index}>{part}</span>;
+                    })}
+                </span>
+            );
+        };
 
-        // 搜尋自然語音
-        function getBestVoice() {
-            const enVoices = voices.filter(v => v.lang.includes('en'));
-            return enVoices.find(v => v.name.includes('Natural')) || 
-                   enVoices.find(v => v.name.includes('Google')) || 
-                   enVoices.find(v => v.lang === 'en-US') || 
-                   enVoices[0];
-        }
+        const App = () => {
+            const [selectedWord, setSelectedWord] = useState(null);
+            const [fontSizeLevel, setFontSizeLevel] = useState(1); // 1 (16px), 2 (20px), 3 (26px)
 
-        function speak(text) {
-            synth.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            const voice = getBestVoice();
-            if (voice) utterance.voice = voice;
-            utterance.rate = 0.9;
-            synth.speak(utterance);
-        }
+            // 全站字體放大機制：修改 HTML 根元素的 font-size，讓所有使用 rem 的 Tailwind class 一起等比例放大
+            useEffect(() => {
+                const sizes = { 1: '16px', 2: '20px', 3: '26px' };
+                document.documentElement.style.fontSize = sizes[fontSizeLevel];
+            }, [fontSizeLevel]);
 
-        function renderPhrases() {
-            const grid = document.getElementById('phrasesGrid');
-            grid.innerHTML = '';
-            
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const currentItems = filteredData.slice(start, end);
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            // 單字發音與翻譯
+            const handleWordClick = (word) => {
+                const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
+                if (!cleanWord) return;
 
-            document.getElementById('pageInfo').innerHTML = `第 <span class="text-indigo-600 font-bold">${currentPage}</span> / ${totalPages || 1} 頁`;
-            document.getElementById('prevBtn').disabled = currentPage === 1;
-            document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+                speakTextWithBlank(cleanWord);
+                const translation = vocabDictionary[cleanWord] || null;
+                setSelectedWord({ word: cleanWord, translation });
+            };
 
-            currentItems.forEach((item, index) => {
-                const globalIndex = start + index + 1;
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex flex-col hover:shadow-md transition-shadow";
-                
-                const wordsHtml = item.en.split(' ').map(w => {
-                    const clean = w.replace(/[^a-zA-Z']/g, "");
-                    return `<span class="word-span cursor-pointer rounded px-0.5 transition-colors mr-1" onclick="event.stopPropagation(); speak('${clean}')">${w}</span>`;
-                }).join('');
+            // 全句語音朗讀 - 支援雙語切換 (遇到 ___ 唸「空格」)
+            const speakTextWithBlank = (text) => {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel(); // 停止目前所有發音
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-start gap-3 mb-3">
-                        <div class="text-lg md:text-xl font-bold text-slate-800">${wordsHtml}</div>
-                        <button onclick="speak('${item.en.replace(/'/g, "\\'")}')" class="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
-                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                // 過濾掉題號如 "1. " 讓朗讀更順暢
+                let cleanText = text.replace(/^\d+\.\s*/, '');
+
+                // 根據底線 ___ 分割字串
+                const parts = cleanText.split('___');
+
+                parts.forEach((part, index) => {
+                    // 1. 朗讀英文段落
+                    if (part.trim() !== "") {
+                        const enUtterance = new SpeechSynthesisUtterance(part);
+                        enUtterance.lang = 'en-US';
+                        enUtterance.rate = 0.85; // 放慢語速
+                        window.speechSynthesis.speak(enUtterance);
+                    }
+                    
+                    // 2. 如果不是最後一個段落，代表中間有被分割的 ___，插入中文「空格」
+                    if (index < parts.length - 1) {
+                        const zhUtterance = new SpeechSynthesisUtterance("空格");
+                        zhUtterance.lang = 'zh-TW'; // 強制使用中文引擎唸出「空格」
+                        zhUtterance.rate = 0.85;
+                        window.speechSynthesis.speak(zhUtterance);
+                    }
+                });
+            };
+
+            // 關閉翻譯面板
+            useEffect(() => {
+                const closePopup = () => setSelectedWord(null);
+                document.addEventListener('click', closePopup);
+                return () => document.removeEventListener('click', closePopup);
+            }, []);
+
+            return (
+                <div className="min-h-screen pb-40">
+                    {/* 無障礙工具列 (Accessibility Toolbar) - 固定在最上方 */}
+                    <div className="bg-gray-800 text-white p-3 sticky top-0 z-50 flex flex-wrap justify-between items-center shadow-lg border-b-4 border-yellow-400">
+                        <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                            <i data-lucide="eye" className="w-6 h-6 text-yellow-400"></i>
+                            <span className="font-bold text-lg">無障礙版 (語音定點提示)</span>
+                        </div>
+                        <div className="flex gap-4">
+                            {/* 字體放大按鈕 */}
+                            <div className="flex bg-gray-700 rounded-lg overflow-hidden border border-gray-600">
+                                <button 
+                                    onClick={() => setFontSizeLevel(1)} 
+                                    className={`px-4 py-2 font-bold ${fontSizeLevel === 1 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                                >
+                                    標準 A
+                                </button>
+                                <button 
+                                    onClick={() => setFontSizeLevel(2)} 
+                                    className={`px-4 py-2 font-bold text-lg ${fontSizeLevel === 2 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                                >
+                                    放大 A+
+                                </button>
+                                <button 
+                                    onClick={() => setFontSizeLevel(3)} 
+                                    className={`px-4 py-2 font-bold text-xl ${fontSizeLevel === 3 ? 'bg-blue-600' : 'hover:bg-gray-600'}`}
+                                >
+                                    特大 A++
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 標題區 */}
+                    <header className="bg-blue-800 text-white p-6 shadow-md">
+                        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                                <i data-lucide="book-open" className="w-8 h-8"></i>
+                                114學年度身障甄試-四技組英文科
+                            </h1>
+                            <div className="text-base bg-blue-900 px-4 py-2 rounded-lg font-bold border-2 border-blue-400">
+                                💡 點擊英文單字翻譯 / 點擊喇叭聽整句(遇底線會提示「空格」)
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 主要內容區塊 */}
+                    <main className="max-w-5xl mx-auto p-4 mt-4 space-y-8">
+                        {testData.map((item) => {
+                            if (item.type === "single") {
+                                return <QuestionCard key={item.id} question={item} onWordClick={handleWordClick} onSpeak={speakTextWithBlank} />;
+                            } else if (item.type === "reading") {
+                                return <ReadingGroupCard key={item.id} group={item} onWordClick={handleWordClick} onSpeak={speakTextWithBlank} />;
+                            }
+                            return null;
+                        })}
+                    </main>
+
+                    {/* 固定式大字體翻譯面板 (Fixed Bottom Panel) */}
+                    {selectedWord && (
+                        <div 
+                            id="dict-panel"
+                            className="fixed bottom-0 left-0 w-full bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.2)] p-6 z-50 border-t-8 border-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
+                                <div className="flex items-center gap-6">
+                                    <button 
+                                        onClick={() => speakTextWithBlank(selectedWord.word)} 
+                                        className="p-4 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 border-2 border-blue-300"
+                                    >
+                                        <i data-lucide="volume-2" className="w-10 h-10"></i>
+                                    </button>
+                                    <div>
+                                        <div className="text-5xl font-extrabold mb-2 tracking-wide text-blue-900">{selectedWord.word}</div>
+                                        <div className="text-3xl font-bold text-gray-800">
+                                            {selectedWord.translation || "(系統暫無內建翻譯)"}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setSelectedWord(null)} 
+                                    className="px-8 py-4 bg-gray-200 text-gray-800 text-xl font-bold rounded-xl hover:bg-gray-300 border-2 border-gray-400 flex items-center gap-2"
+                                >
+                                    <i data-lucide="x-circle" className="w-8 h-8"></i> 關閉翻譯
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 單選題組件 ---
+        const QuestionCard = ({ question, onWordClick, onSpeak }) => {
+            const [showTranslate, setShowTranslate] = useState(false);
+            const [showAnswer, setShowAnswer] = useState(false);
+
+            return (
+                <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-gray-300">
+                    {/* 題幹區 & 朗讀按鈕 */}
+                    <div className="flex items-start gap-4 mb-4">
+                        <button 
+                            onClick={() => onSpeak(question.en)}
+                            className="shrink-0 p-3 bg-green-100 text-green-800 rounded-xl hover:bg-green-200 border-2 border-green-300 flex items-center justify-center mt-1"
+                            title="朗讀全句 (遇空格會以中文提示)"
+                        >
+                            <i data-lucide="volume-2" className="w-6 h-6"></i>
+                        </button>
+                        <div className="text-[1.2em] font-medium leading-relaxed">
+                            <ClickableText text={question.en} onWordClick={onWordClick} />
+                        </div>
+                    </div>
+                    
+                    {showTranslate && (
+                        <div className="ml-16 mb-6 p-4 bg-gray-50 rounded-xl border-l-8 border-blue-400 text-[1.1em] text-gray-700 font-bold">
+                            {question.zh}
+                        </div>
+                    )}
+
+                    {/* 選項區 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {question.options.map(opt => (
+                            <div key={opt.key} className="flex p-4 border-2 rounded-xl hover:bg-blue-50 transition items-center">
+                                <span className="font-bold text-[1.2em] mr-4 text-blue-800 bg-blue-100 px-3 py-1 rounded-lg">
+                                    {opt.key}
+                                </span>
+                                <div className="flex-1 flex flex-col">
+                                    <div className="text-[1.2em] font-medium">
+                                        <ClickableText text={opt.en} onWordClick={onWordClick} />
+                                    </div>
+                                    {showTranslate && <div className="text-[1em] text-gray-500 mt-2 font-bold">{opt.zh}</div>}
+                                </div>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); onSpeak(opt.en); }}
+                                    className="ml-2 p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-200"
+                                >
+                                    <i data-lucide="volume-1" className="w-6 h-6"></i>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 互動按鈕區 */}
+                    <div className="flex flex-wrap gap-4 border-t-2 pt-6">
+                        <button 
+                            onClick={() => setShowTranslate(!showTranslate)}
+                            className="px-6 py-3 bg-blue-100 text-blue-800 rounded-xl font-bold border-2 border-blue-300 flex items-center gap-2"
+                        >
+                            <i data-lucide="languages" className="w-6 h-6"></i>
+                            {showTranslate ? "隱藏中文" : "顯示中文"}
+                        </button>
+                        <button 
+                            onClick={() => setShowAnswer(!showAnswer)}
+                            className="px-6 py-3 bg-purple-100 text-purple-800 rounded-xl font-bold border-2 border-purple-300 flex items-center gap-2"
+                        >
+                            <i data-lucide="help-circle" className="w-6 h-6"></i>
+                            {showAnswer ? "隱藏解析" : "看解答與解析"}
                         </button>
                     </div>
-                    <div class="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center text-slate-600">
-                        <span class="font-medium">${item.cn}</span>
-                        <span class="text-xs text-slate-300 font-mono">#${globalIndex}</span>
+
+                    {/* 解析區塊 */}
+                    {showAnswer && (
+                        <div className="mt-6 p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
+                            <div className="font-black text-purple-900 text-[1.3em] mb-3 border-b-2 border-purple-200 pb-2">
+                                🎯 正確答案：{question.answer}
+                            </div>
+                            <div className="text-gray-800 text-[1.1em] font-medium leading-relaxed">
+                                {question.explanation}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 閱讀題組件 ---
+        const ReadingGroupCard = ({ group, onWordClick, onSpeak }) => {
+            const [showTranslate, setShowTranslate] = useState(false);
+
+            return (
+                <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-300 overflow-hidden">
+                    <div className="bg-gray-800 text-white py-3 px-6 text-[1.2em] font-bold flex items-center gap-3">
+                        <i data-lucide="file-text" className="w-7 h-7"></i>
+                        {group.title}
                     </div>
-                `;
-                grid.appendChild(card);
-            });
+                    <div className="p-6 md:p-8 border-b-2 border-gray-300">
+                        {/* 朗讀全文按鈕 */}
+                        <button 
+                            onClick={() => onSpeak(group.article_en)}
+                            className="mb-6 px-6 py-3 bg-green-100 text-green-800 rounded-xl font-bold border-2 border-green-300 flex items-center gap-2"
+                        >
+                            <i data-lucide="play-circle" className="w-6 h-6"></i> 語音朗讀整篇文章
+                        </button>
+
+                        <div className="prose max-w-none text-[1.2em] leading-loose font-medium text-gray-800">
+                            {group.article_en.split('\n').map((para, i) => (
+                                <p key={i} className="mb-6 indent-8">
+                                    <ClickableText text={para} onWordClick={onWordClick} />
+                                </p>
+                            ))}
+                        </div>
+                        
+                        {showTranslate && (
+                            <div className="mt-8 pt-6 border-t-4 border-dashed border-gray-300">
+                                <h4 className="font-bold text-gray-600 mb-4 flex items-center gap-2 text-[1.2em]">
+                                    <i data-lucide="languages" className="w-6 h-6"></i>
+                                    文章中文翻譯：
+                                </h4>
+                                <div className="text-gray-700 leading-relaxed text-[1.1em] font-bold">
+                                    {group.article_zh.split('\n').map((para, i) => (
+                                        <p key={i} className="mb-4 indent-8">{para}</p>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="mt-6">
+                            <button 
+                                onClick={() => setShowTranslate(!showTranslate)}
+                                className="px-6 py-3 bg-blue-100 text-blue-800 rounded-xl font-bold border-2 border-blue-300 flex items-center gap-2"
+                            >
+                                <i data-lucide="eye" className="w-6 h-6"></i>
+                                {showTranslate ? "隱藏文章翻譯" : "顯示文章翻譯"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-6 md:p-8 space-y-8">
+                        <h3 className="font-bold text-gray-800 border-b-2 border-gray-300 pb-3 flex items-center gap-3 text-[1.3em]">
+                            <i data-lucide="edit-3" className="w-7 h-7"></i>
+                            根據上文回答下列問題：
+                        </h3>
+                        {group.questions.map(q => (
+                            <QuestionCard key={q.id} question={q} onWordClick={onWordClick} onSpeak={onSpeak} />
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+        setTimeout(() => {
             lucide.createIcons();
-        }
-
-        // Event Listeners
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            filteredData = phrasesData.filter(p => p.en.toLowerCase().includes(term) || p.cn.includes(term));
-            currentPage = 1;
-            renderPhrases();
-        });
-
-        document.getElementById('prevBtn').onclick = () => {
-            if (currentPage > 1) { currentPage--; renderPhrases(); window.scrollTo(0, 0); }
-        };
-
-        document.getElementById('nextBtn').onclick = () => {
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            if (currentPage < totalPages) { currentPage++; renderPhrases(); window.scrollTo(0, 0); }
-        };
-
-        // Initial Run
-        window.onload = () => {
-            initVoices();
-            renderPhrases();
-        };
+        }, 100);
     </script>
 </body>
 </html>
